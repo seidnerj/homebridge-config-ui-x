@@ -9,6 +9,10 @@
     </button>
   </div>
   <div class="modal-body">
+    <ngb-alert type="info" [dismissible]="false">
+      {{ 'reset.message_remove_cached_accessories_single_warning' | translate }}
+    </ngb-alert>
+
     <ul class="list-group mt-2">
       <li class="list-group-item d-flex justify-content-between align-items-center"
         *ngFor="let item of cachedAccessories">
