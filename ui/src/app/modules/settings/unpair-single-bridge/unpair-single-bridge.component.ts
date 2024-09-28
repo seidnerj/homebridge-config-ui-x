@@ -1,5 +1,5 @@
 import { ApiService } from '@/app/core/api.service'
-import { RestartComponent } from '@/app/core/components/restart/restart.component'
+import { RestartHomebridgeComponent } from '@/app/core/components/restart-homebridge/restart-homebridge.component'
 import { Component, OnDestroy, OnInit } from '@angular/core'
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap'
 import { TranslateService } from '@ngx-translate/core'
@@ -66,7 +66,7 @@ export class UnpairSingleBridgeComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     if (this.unpaired) {
-      this.$modal.open(RestartComponent, {
+      this.$modal.open(RestartHomebridgeComponent, {
         size: 'lg',
         backdrop: 'static',
       })
