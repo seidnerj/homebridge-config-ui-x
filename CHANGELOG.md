@@ -34,6 +34,7 @@ All notable changes to `homebridge-config-ui-x` will be documented in this file.
 - added `arm` runners to the ui workflows for testing
 - make 'keep orphans' setting available in ui settings service
 - improve types for widgets
+- update `ng-formworks` packages to `v19.6.0`
 
 ### Homebridge Dependencies
 
