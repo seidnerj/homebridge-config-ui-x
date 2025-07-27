@@ -36,6 +36,7 @@ All notable changes to `homebridge-config-ui-x` will be documented in this file.
 - make 'keep orphans' setting available in ui settings service
 - improve types for widgets
 - update `ng-formworks` packages to `v19.6.0`
+- use new folder for updated accessory icons (fix cache issues)
 
 ### Homebridge Dependencies
 
