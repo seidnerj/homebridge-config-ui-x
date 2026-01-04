@@ -51,9 +51,12 @@ export class TerminalService {
     this.destroyTerminal()
 
     // Then tell the backend to destroy the persistent session via HTTP API
-    this.$api.post('/platform-tools/terminal/destroy-persistent-session', {}).subscribe({
-      error: error => console.error('Failed to destroy persistent session:', error),
-    })
+    this.$api
+      .post('/platform-tools/terminal/destroy-persistent-session', {})
+      .subscribe({
+        error: error =>
+          console.error('Failed to destroy persistent session:', error),
+      })
   }
 
   public detachTerminal() {
@@ -83,7 +86,9 @@ export class TerminalService {
 
   public async checkBackendPersistentSession(): Promise<boolean> {
     try {
-      const response = await this.$api.get('/platform-tools/terminal/has-persistent-session').toPromise() as { hasPersistentSession: boolean }
+      const response = (await this.$api
+        .get('/platform-tools/terminal/has-persistent-session')
+        .toPromise()) as { hasPersistentSession: boolean }
       return response.hasPersistentSession
     } catch (error) {
       console.error('Failed to check backend persistent session:', error)
@@ -103,6 +108,7 @@ export class TerminalService {
     targetElement: ElementRef,
     termOpts: ITerminalOptions = {},
     elementResize?: Subject<any>,
+    disableFit?: boolean,
   ): boolean {
     if (this.isInitializing) {
       return false
@@ -115,8 +121,9 @@ export class TerminalService {
 
     // Reuse existing connection if still active
     if (this.io && this.io.socket && this.io.socket.connected) {
-      // Create a new terminal instance for the UI
-      this.term = new Terminal(termOpts)
+      // Create a new terminal instance for the UI with fixed columns if fit is disabled
+      const finalOpts = disableFit ? { cols: 200, ...termOpts } : termOpts
+      this.term = new Terminal(finalOpts)
 
       // Load addons
       this.fitAddon = new FitAddon()
@@ -133,10 +140,18 @@ export class TerminalService {
       // Open the terminal in the target element
       this.term.open(targetElement.nativeElement)
 
-      // Fit to the element
+      // Fit to the element, but preserve fixed columns if disabled
       setTimeout(() => {
         this.fitAddon.activate(this.term)
-        this.fitAddon.fit()
+        if (disableFit) {
+          // Custom fit that preserves fixed columns
+          const dimensions = this.fitAddon.proposeDimensions()
+          if (dimensions) {
+            this.term.resize(200, dimensions.rows) // Keep 200 cols, use calculated rows
+          }
+        } else {
+          this.fitAddon.fit()
+        }
       })
 
       // Remove existing listeners to avoid duplicates
@@ -174,10 +189,17 @@ export class TerminalService {
       })
 
       if (this.elementResize) {
-        // Subscribe to grid resize event
+        // Subscribe to grid resize event, but preserve fixed columns if disabled
         this.elementResize.pipe(debounceTime(100)).subscribe({
           next: () => {
-            this.fitAddon.fit()
+            if (disableFit) {
+              const dimensions = this.fitAddon.proposeDimensions()
+              if (dimensions) {
+                this.term.resize(200, dimensions.rows) // Keep 200 cols, use calculated rows
+              }
+            } else {
+              this.fitAddon.fit()
+            }
           },
         })
       }
@@ -191,7 +213,7 @@ export class TerminalService {
       this.isInitializing = false
     } else {
       // No active connection, start fresh
-      this.startTerminal(targetElement, termOpts, elementResize)
+      this.startTerminal(targetElement, termOpts, elementResize, disableFit)
     }
   }
 
@@ -199,6 +221,7 @@ export class TerminalService {
     targetElement: ElementRef,
     termOpts: ITerminalOptions = {},
     elementResize?: Subject<any>,
+    disableFit?: boolean,
   ): boolean {
     if (this.isInitializing) {
       return false
@@ -212,8 +235,13 @@ export class TerminalService {
     // Connect to the websocket endpoint
     this.io = this.$ws.connectToNamespace('platform-tools/terminal')
 
-    // Create a terminal instance
-    this.term = new Terminal(termOpts)
+    // Create a terminal instance with fixed columns if fit is disabled
+    const finalOpts = disableFit ? { cols: 200, ...termOpts } : termOpts
+    this.term = new Terminal(finalOpts)
+
+    // Load addons
+    this.fitAddon = new FitAddon()
+    this.webLinksAddon = new WebLinksAddon()
 
     // Load addons
     setTimeout(() => {
@@ -221,19 +249,24 @@ export class TerminalService {
       this.term.loadAddon(this.webLinksAddon)
     })
 
-    this.fitAddon = new FitAddon()
-    this.webLinksAddon = new WebLinksAddon()
-
     // Create a subject to listen for resize events
     this.resize = new Subject()
 
     // Open the terminal in the target element
     this.term.open(targetElement.nativeElement)
 
-    // Fit to the element
+    // Fit to the element, but preserve fixed columns if disabled
     setTimeout(() => {
       this.fitAddon.activate(this.term)
-      this.fitAddon.fit()
+      if (disableFit) {
+        // Custom fit that preserves fixed columns
+        const dimensions = this.fitAddon.proposeDimensions()
+        if (dimensions) {
+          this.term.resize(200, dimensions.rows) // Keep 200 cols, use calculated rows
+        }
+      } else {
+        this.fitAddon.fit()
+      }
     })
 
     // Start the terminal session when the socket is connected
@@ -275,10 +308,17 @@ export class TerminalService {
     })
 
     if (this.elementResize) {
-      // Subscribe to grid resize event
+      // Subscribe to grid resize event, but preserve fixed columns if disabled
       this.elementResize.pipe(debounceTime(100)).subscribe({
         next: () => {
-          this.fitAddon.fit()
+          if (disableFit) {
+            const dimensions = this.fitAddon.proposeDimensions()
+            if (dimensions) {
+              this.term.resize(200, dimensions.rows) // Keep 200 cols, use calculated rows
+            }
+          } else {
+            this.fitAddon.fit()
+          }
         },
       })
     }

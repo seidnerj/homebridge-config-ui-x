@@ -60,6 +60,7 @@ export class SwitchToScopedComponent implements OnInit, OnDestroy {
       },
       allowTransparency: true,
       allowProposedApi: true,
+      cols: 200, // Fixed columns for scrollable container
     })
     this.term.loadAddon(this.fitAddon)
     this.term.loadAddon(this.webLinksAddon)
@@ -70,7 +71,11 @@ export class SwitchToScopedComponent implements OnInit, OnDestroy {
     this.io = this.$ws.connectToNamespace('plugins')
     this.termTarget = document.getElementById('plugin-output')
     this.term.open(this.termTarget)
-    this.fitAddon.fit()
+    // Custom fit that preserves fixed columns
+    const dimensions = this.fitAddon.proposeDimensions()
+    if (dimensions) {
+      this.term.resize(200, dimensions.rows) // Keep 200 cols, use calculated rows
+    }
 
     this.io.socket.on('stdout', (data: string | Uint8Array) => {
       this.term.write(data)

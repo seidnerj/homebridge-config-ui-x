@@ -35,7 +35,11 @@
   </div>
   }
 
-  <div [hidden]="!restoreStarted" id="plugin-log-output" class="modal-body"></div>
+  <div [hidden]="!restoreStarted" class="modal-body">
+    <div class="terminal-scrollable-container">
+      <div id="plugin-log-output"></div>
+    </div>
+  </div>
 
   @if (!restoreStarted || restoreFailed === true) {
   <div class="modal-footer justify-content-between">

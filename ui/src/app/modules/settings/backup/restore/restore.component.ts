@@ -25,7 +25,7 @@ export class RestoreComponent implements OnInit, OnDestroy {
   private $translate = inject(TranslateService)
   private $ws = inject(WsService)
   private io: IoNamespace
-  private term = new Terminal()
+  private term = new Terminal({ cols: 200 }) // Fixed columns for scrollable container
   private termTarget: HTMLElement
   private fitAddon = new FitAddon()
 
@@ -45,7 +45,11 @@ export class RestoreComponent implements OnInit, OnDestroy {
     this.io = this.$ws.connectToNamespace('backup')
     this.termTarget = document.getElementById('plugin-log-output')
     this.term.open(this.termTarget)
-    this.fitAddon.fit()
+    // Custom fit that preserves fixed columns
+    const dimensions = this.fitAddon.proposeDimensions()
+    if (dimensions) {
+      this.term.resize(200, dimensions.rows) // Keep 200 cols, use calculated rows
+    }
 
     this.io.socket.on('stdout', (data) => {
       this.term.write(data)

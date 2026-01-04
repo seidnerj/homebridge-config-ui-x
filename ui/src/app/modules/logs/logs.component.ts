@@ -54,7 +54,8 @@ export class LogsComponent implements OnInit, OnDestroy, CanComponentDeactivate 
 
   @HostListener('window:resize', ['$event'])
   onWindowResize() {
-    this.resizeEvent.next(undefined)
+    // Don't send resize events when using scrollable container
+    // this.resizeEvent.next(undefined)
   }
 
   public ngOnInit() {
@@ -74,10 +75,10 @@ export class LogsComponent implements OnInit, OnDestroy, CanComponentDeactivate 
       }
     }
 
-    // Start the terminal
+    // Start the terminal with scrollable container (disable fit)
     this.$log.startTerminal(this.termTarget(), {
       allowProposedApi: true,
-    }, this.resizeEvent)
+    }, this.resizeEvent, undefined, true)
 
     // Watch for changes in the search query
     this.valueChangesSubscription = this.form.get('query')?.valueChanges.pipe(

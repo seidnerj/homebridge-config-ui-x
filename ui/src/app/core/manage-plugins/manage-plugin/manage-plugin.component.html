@@ -9,7 +9,11 @@
       (click)="dismissModal()"
     ></button>
   </div>
-  <div [hidden]="!onlineUpdateOk || actionComplete || releaseNotesShow" id="plugin-log-output" class="modal-body"></div>
+  <div [hidden]="!onlineUpdateOk || actionComplete || releaseNotesShow" class="modal-body">
+    <div class="terminal-scrollable-container">
+      <div id="plugin-log-output"></div>
+    </div>
+  </div>
   @if (actionComplete) {
   <div class="modal-body plugin-modal-body">
     @if (justUpdatedPlugin) {
