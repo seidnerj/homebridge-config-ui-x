@@ -29,6 +29,7 @@ export class LogService {
     termOpts: ITerminalOptions = {},
     elementResize?: Subject<void>,
     pluginName?: string,
+    disableFit?: boolean,
   ) {
     this.pluginName = pluginName
 
@@ -38,17 +39,18 @@ export class LogService {
     // Connect to the websocket endpoint
     this.io = this.$ws.connectToNamespace('log')
 
-    // Create a terminal instance
-    this.term = new Terminal(termOpts)
+    // Create a terminal instance with fixed columns if fit is disabled
+    const finalOpts = disableFit ? { cols: 200, ...termOpts } : termOpts
+    this.term = new Terminal(finalOpts)
 
     // Load addons
+    this.fitAddon = new FitAddon()
+    this.webLinksAddon = new WebLinksAddon()
+
     setTimeout(() => {
       this.term.loadAddon(this.fitAddon)
       this.term.loadAddon(this.webLinksAddon)
     })
-
-    this.fitAddon = new FitAddon()
-    this.webLinksAddon = new WebLinksAddon()
 
     // Create a subject to listen for resize events
     this.resize = new Subject<{ cols: number, rows: number }>()
@@ -56,10 +58,18 @@ export class LogService {
     // Open the terminal in the target element
     this.term.open(targetElement.nativeElement)
 
-    // Fit to the element
+    // Fit to the element, but preserve fixed columns if disabled
     setTimeout(() => {
       this.fitAddon.activate(this.term)
-      this.fitAddon.fit()
+      if (disableFit) {
+        // Custom fit that preserves fixed columns
+        const dimensions = this.fitAddon.proposeDimensions()
+        if (dimensions) {
+          this.term.resize(200, dimensions.rows) // Keep 200 cols, use calculated rows
+        }
+      } else {
+        this.fitAddon.fit()
+      }
     })
 
     // Start the terminal session when the socket is connected
@@ -133,10 +143,17 @@ export class LogService {
     })
 
     if (this.elementResize) {
-      // Subscribe to grid resize event
+      // Subscribe to grid resize event, but preserve fixed columns if disabled
       this.elementResize.pipe(debounceTime(100)).subscribe({
         next: () => {
-          this.fitAddon.fit()
+          if (disableFit) {
+            const dimensions = this.fitAddon.proposeDimensions()
+            if (dimensions) {
+              this.term.resize(200, dimensions.rows) // Keep 200 cols, use calculated rows
+            }
+          } else {
+            this.fitAddon.fit()
+          }
         },
       })
     }

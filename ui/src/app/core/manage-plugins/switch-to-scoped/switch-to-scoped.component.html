@@ -79,7 +79,11 @@ hb-service start</pre
       <button class="btn btn-primary mb-0" (click)="downloadLogFile()">{{ 'form.button_download' | translate }}</button>
     </div>
     }
-    <div class="mb-0" [hidden]="!onlineUpdateOk || failure" id="plugin-output"></div>
+    <div class="mb-0" [hidden]="!onlineUpdateOk || failure">
+      <div class="terminal-scrollable-container">
+        <div id="plugin-output"></div>
+      </div>
+    </div>
   </div>
   <div class="modal-footer justify-content-between">
     <div class="text-start">

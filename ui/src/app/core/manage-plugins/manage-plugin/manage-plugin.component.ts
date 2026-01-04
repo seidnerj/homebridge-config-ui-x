@@ -59,7 +59,7 @@ export class ManagePluginComponent implements OnInit, OnDestroy {
   private $ws = inject(WsService)
   private io: IoNamespace
   private toastSuccess: string
-  private term = new Terminal()
+  private term = new Terminal({ cols: 200 }) // Fixed columns for scrollable container
   private termTarget: HTMLElement
   private fitAddon = new FitAddon()
   private webLinksAddon = new WebLinksAddon()
@@ -116,7 +116,11 @@ export class ManagePluginComponent implements OnInit, OnDestroy {
     this.io = this.$ws.connectToNamespace('plugins')
     this.termTarget = document.getElementById('plugin-log-output')
     this.term.open(this.termTarget)
-    this.fitAddon.fit()
+    // Custom fit that preserves fixed columns
+    const dimensions = this.fitAddon.proposeDimensions()
+    if (dimensions) {
+      this.term.resize(200, dimensions.rows) // Keep 200 cols, use calculated rows
+    }
 
     this.io.socket.on('stdout', (data: string | Uint8Array) => {
       this.term.write(data)

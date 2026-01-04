@@ -5,6 +5,26 @@
   overflow: hidden;
 }
 
+#log-output,
+#docker-terminal {
+  background-color: #000000;
+  padding: 5px;
+}
+
+.terminal-scrollable-container {
+  width: 100%;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background-color: #000000;
+
+  // Ensure xterm content can be scrolled horizontally
+  .xterm {
+    width: max-content;
+    min-width: 100%;
+  }
+}
+
 .no-scrollbars,
 .xterm-viewport {
   &::-webkit-scrollbar {
