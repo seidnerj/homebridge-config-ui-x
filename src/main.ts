@@ -111,7 +111,15 @@ async function bootstrap(): Promise<NestFastifyApplication> {
 
   // (9) Set up cors
   app.enableCors({
-    origin: ['http://localhost:8080', 'http://localhost:4200'],
+    origin: (origin, callback) => {
+      // In development, allow any origin on port 4200 or 8080 (Angular dev server)
+      // In production, this won't be called as the UI is served from the same origin
+      if (!origin || /^https?:\/\/[^:]+:(?:4200|8080)$/.test(origin)) {
+        callback(null, true)
+      } else {
+        callback(null, false)
+      }
+    },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   })
 
